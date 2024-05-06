@@ -8,7 +8,7 @@ list_of_files = [
     "app/__init__.py",
     "app/routes.py",
     "app/models.py",
-    "app/templates/index.html",
+    "templates/index.html",
     "static/css/",
     "static/js/",
     "static/img/",
