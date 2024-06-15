@@ -1,7 +1,7 @@
 from flask import Flask, render_template, jsonify, request
 from hugchat import hugchat
 
-chatbot = hugchat.ChatBot(cookie_path="/home/yvesloic/Documents/L2-GEIT/Recherche_operationnelle/Projet/recherche-operationnelle/cookies.json")
+chatbot = hugchat.ChatBot(cookie_path="cookies.json")
 id = chatbot.new_conversation()
 chatbot.change_conversation(id)
 
