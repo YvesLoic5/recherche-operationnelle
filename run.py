@@ -4,7 +4,7 @@ import re
 from dotenv import load_dotenv
 import google.generativeai as genai
 import streamlit as st
-from solver import solve_optimization_problem
+from app.models import solve_optimization_problem
 
 # environment variables
 load_dotenv()
