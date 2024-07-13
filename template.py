@@ -6,9 +6,8 @@ logging.basicConfig(level=logging.INFO, format='[%(asctime)s]: %(message)s:')
 
 list_of_files = [
     "app/__init__.py",
-    "app/routes.py",
     "app/models.py",
-    "config.py",
+    "setup.py",
     "requirements.txt",
     "run.py"
 ]
