@@ -72,7 +72,7 @@ if uploaded_file is not None:
     image = Image.open(uploaded_file)
     st.image(image, caption="Uploaded Image.", use_column_width=True)    
 
-submit = st.button("Décris moi l'image")
+submit = st.button("Solve the problem")
 
 input_prompt1 = """
     You are an expert in solving operational research problems. Please give the 
