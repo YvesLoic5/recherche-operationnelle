@@ -18,7 +18,7 @@ def get_gemini_response(input_text, image, prompt):
     response = model.generate_content([input_text, image[0], prompt])
     return response.text
 
-# Fonction extraction image
+# Function to extract image data
 def input_image_setup(uploaded_file):
     if uploaded_file is not None:
         bytes_data = uploaded_file.getvalue()
@@ -27,7 +27,7 @@ def input_image_setup(uploaded_file):
     else:
         raise FileNotFoundError("Aucune image trouvée")
 
-# fonction pour extraire la réponse manuellement
+# function to extract manually the responses from gemini
 def parse_response(response):
     response_dict = {}
     
@@ -110,7 +110,7 @@ if submit:
     print("Debug - Raw Response")
     print(response1)
     
-    # Extraction des réponses
+    # Extract responses
     try:
         response_dict = parse_response(response1)
         print("Reponse extrait:")
