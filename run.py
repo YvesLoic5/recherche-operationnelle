@@ -30,25 +30,38 @@ def input_image_setup(uploaded_file):
 # fonction pour extraire la réponse manuellement
 def parse_response(response):
     response_dict = {}
-
-    # Extraire la fonction objective
+    
+    # Extract the objective function
     obj_match = re.search(r'Max\s+([\d\w\s\+\-]+)', response)
     if obj_match:
         objective_str = obj_match.group(1).strip()
         terms = re.findall(r'(\d+)([a-zA-Z]+)', objective_str)
         response_dict['objective'] = {term[1]: int(term[0]) for term in terms}
+    
+    # Debug: print the objective function
+    print("Debug - Objective Function")
+    print(response_dict['objective'])
 
-    # Extraire les contraintes
+    # Extract constraints
     constraints = {}
-    constraint_matches = re.findall(r'([\d\w\s\+\-]+)≤\s*(\d+)', response)
+    constraint_matches = re.findall(r'([\d\w\s\+\-]+)\s*(<=|>=)\s*(\d+)', response)
     for i, cstr in enumerate(constraint_matches):
-        lhs, rhs = cstr
+        lhs, operator, rhs = cstr
         terms = re.findall(r'(\d*)([a-zA-Z]+)', lhs)
-        constraints[f'contrainte-{i+1}'] = {term[1]: int(term[0] if term[0] else 1) for term in terms}
-        constraints[f'contrainte-{i+1}']['rhs'] = int(rhs)
+        constraint = {term[1]: int(term[0] if term[0] else 1) for term in terms}
+        constraint['rhs'] = int(rhs)
+        constraint['operator'] = operator  # Save the operator for further use
+        constraints[f'constraint-{i+1}'] = constraint
+    
+    # Debug: print the extracted constraints
+    print("Debug - Constraints")
+    for name, constraint in constraints.items():
+        print(f"{name}: {constraint}")
 
     response_dict.update(constraints)
     return response_dict
+
+
 
 # Streamlit page
 st.set_page_config(page_title="Gemini Image DEMO")
@@ -84,7 +97,7 @@ input_prompt1 = """
         second: All the constraints must be less than or equal constraints, and if it is a greater than or
         equal constraint, do the necessary transformation to change it into less than or equal except the 
         positivity constraint.
-"""
+        """
 
 if submit:
     image_data = input_image_setup(uploaded_file)
@@ -104,27 +117,38 @@ if submit:
         print(response_dict)
         
         if "objective" not in response_dict:
-            st.error("Il en manque la fonction objective.")
-        if not any(k.startswith("contrainte") for k in response_dict):
-            st.error("Il en manque les contraintes.")
+            st.error("Il manque la fonction objective.")
+        if not any(k.startswith("constraint") for k in response_dict):
+            st.error("Il manque les contraintes.")
         
         objective = response_dict.get("objective", {})
-        constraints = {k: v for k, v in response_dict.items() if k.startswith("contrainte")}
+        constraints = {k: v for k, v in response_dict.items() if k.startswith("constraint")}
 
         if objective and constraints:
-            # Résoudre avec Pyomo
-            results = solve_optimization_problem(objective, constraints)
+            # Transform constraints with >= to <=
+            transformed_constraints = {}
+            for name, constraint in constraints.items():
+                if constraint.get('operator') == '>=':
+                    transformed_constraint = {k: -v for k, v in constraint.items() if k not in ['operator', 'rhs']}
+                    transformed_constraint['rhs'] = -constraint['rhs']
+                    transformed_constraints[name] = transformed_constraint
+                else:
+                    transformed_constraints[name] = {k: v for k, v in constraint.items() if k != 'operator'}
 
-            # Afficher les résultats en Streamlit
+            # Solve with Pyomo
+            results = solve_optimization_problem(objective, transformed_constraints)
+
+            # Display results in Streamlit
             st.subheader("Résultats optimaux:")
             for var, value in results["variables"].items():
                 st.write(f"Valeur optimale de {var}: {value}")
             st.write(f"Valeur optimale de la fonction objective: {results['objective_value']}")
 
         else:
-            st.error("Il en manque des éléments.")
+            st.error("Il manque des éléments.")
     except Exception as e:
-        st.error(f"Erreur d'extraire des réponses : {str(e)}")
+        st.error(f"Erreur d'extraction des réponses : {str(e)}")
+
 
 
     
